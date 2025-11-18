@@ -1,0 +1,106 @@
+/* Base screen */
+.splash-screen {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to right, #1d3557, #2a9d8f);
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 1s ease-in-out;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Common loader wrapper */
+.custom-loader {
+  width: 50px;
+  height: 50px;
+  margin: auto;
+}
+
+/* Pulse Loader */
+.custom-loader.pulse {
+  border-radius: 50%;
+  background: #f1faee;
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+}
+
+/* Coin Jump Loader */
+.custom-loader.coin {
+  width: 40px;
+  height: 40px;
+  background: gold;
+  border-radius: 50%;
+  animation: jump 0.6s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes jump {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.1);
+  }
+}
+
+/* Spinning Logo Loader */
+.custom-loader.logo-spin {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #f1faee;
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ripple Ring Loader */
+.custom-loader.ripple {
+  position: relative;
+}
+
+.custom-loader.ripple::before,
+.custom-loader.ripple::after {
+  content: "";
+  position: absolute;
+  border: 3px solid #f1faee;
+  border-radius: 50%;
+  animation: ripple 1.5s infinite;
+}
+
+.custom-loader.ripple::after {
+  animation-delay: 0.75s;
+}
+
+@keyframes ripple {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  100% {
+    width: 60px;
+    height: 60px;
+    opacity: 0;
+  }
+}
