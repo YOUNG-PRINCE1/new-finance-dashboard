@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { auth, provider, signInWithPopup } from "../firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
-import Google from '../assets/google.webp'
+import Google from "../assets/google.webp";
+
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [error, setError] = useState(""); // ❗ Error catcher
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -19,15 +21,34 @@ const Signup = () => {
     }
   };
 
+  // 🔐 Password validation (must contain BOTH letters & numbers)
+  const isPasswordValid = (password) => {
+    const hasLetters = /[A-Za-z]/.test(password);
+    const hasNumbers = /[0-9]/.test(password);
+    return password.length >= 6 && hasLetters && hasNumbers;
+  };
+
   const handleSignup = async (e) => {
     e.preventDefault();
+    setError(""); // Reset error each submit
+
+    // ❗ PRE-VALIDATE PASSWORD BEFORE FIREBASE
+    if (!isPasswordValid(password)) {
+      setError("Password must contain at least one letter and one number.");
+      return;
+    }
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       let photoURL = null;
       if (photo) {
-        photoURL = photoPreview;
+        photoURL = photoPreview; // Preview only (you can upgrade to storage later)
       }
 
       await updateProfile(user, {
@@ -35,30 +56,41 @@ const Signup = () => {
         photoURL: photoURL,
       });
 
-      // 🔥 Get Firebase token
+      // 🔥 Save Firebase ID token
       const token = await user.getIdToken();
-      localStorage.setItem("token", token); // 🧠 Save it for API use
+      localStorage.setItem("token", token);
 
       navigate("/");
     } catch (err) {
       console.error(err);
-      alert("Signup failed");
+
+      // 🔥 FRIENDLY ERROR HANDLING
+      if (err.code === "auth/email-already-in-use") {
+        setError("This email is already registered. Try logging in.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else if (err.code === "auth/weak-password") {
+        setError("Password is too weak. Minimum 6 characters.");
+      } else if (err.code === "auth/network-request-failed") {
+        setError("Network error. Check your connection and try again.");
+      } else {
+        setError("Signup failed. Please try again.");
+      }
     }
   };
 
-
   const handleGoogleSignup = async () => {
+    setError("");
     try {
       const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken(); // 🔥 Firebase token
-      localStorage.setItem("token", token); // 🧠 Save it
-
+      const token = await result.user.getIdToken();
+      localStorage.setItem("token", token);
       navigate("/");
     } catch (err) {
       console.error("Google sign-up error:", err);
+      setError("Google signup failed. Try again.");
     }
   };
-
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100">
@@ -67,6 +99,11 @@ const Signup = () => {
         style={{ width: "100%", maxWidth: "400px" }}
       >
         <h3 className="text-center mb-4">Create an Account</h3>
+
+        {/* 🔥 ERROR MESSAGE DISPLAY */}
+        {error && (
+          <div className="alert alert-danger text-center py-2">{error}</div>
+        )}
 
         <form onSubmit={handleSignup}>
           <div className="mb-3">
@@ -100,6 +137,9 @@ const Signup = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <small className="text-light">
+              Must include letters & numbers (min 6 chars)
+            </small>
           </div>
 
           <div className="mb-3">
@@ -132,16 +172,14 @@ const Signup = () => {
           onClick={handleGoogleSignup}
           className="btn btn-light w-100 d-flex align-items-center justify-content-center gap-2"
         >
-          <img
-            src={Google }
-            alt="Google logo"
-            width={20}
-            height={20}
-          />
+          <img src={Google} alt="Google logo" width={20} height={20} />
           Sign up with Google
         </button>
 
-        <p className="text-center text-muted mt-4 mb-0" style={{ fontSize: "0.9rem" }}>
+        <p
+          className="text-center text-muted mt-4 mb-0"
+          style={{ fontSize: "0.9rem" }}
+        >
           Already have an account?{" "}
           <Link to="/login" className="text-white">
             Log in
